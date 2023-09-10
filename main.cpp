@@ -83,23 +83,14 @@ void assistantFunction(vector<handNode> &handNodeVector, vector<int> imaginaryDe
         {
             imaginaryDeck = originalVector;
 
-            //remove the cards that CAN'T be drawn
-            for(int k=0; k<handNodeVector[i].cardVector.size()-1; k++)
+            // Remove the cards that CAN'T be drawn, starting from the last element
+            for (auto it = handNodeVector[i].cardVector.rbegin(); it != handNodeVector[i].cardVector.rend(); ++it)
             {
-                int cardThatWillBeRemoved;
-                cardThatWillBeRemoved = handNodeVector[i].cardVector.back();
-                cout<<"card that will be removed is: "<<cardThatWillBeRemoved<<endl;
-                imaginaryDeck = eraseFunction(cardThatWillBeRemoved,imaginaryDeck);
+                int cardThatWillBeRemoved = *it; // Get the current card from the reverse iterator
+                imaginaryDeck = eraseFunction(cardThatWillBeRemoved, imaginaryDeck);
             }
 
-            cout<<"i: "<<i<<endl;
-            cout<<"imaginary deck: "<<endl;
-            for(int d=0; d<imaginaryDeck.size(); d++)
-            {
-                cout<<imaginaryDeck[d]<<" ";
-            }
-            cout<<endl;
-
+        
             for(int create=0; create<imaginaryDeck.size(); create++)
             {
                 tempVector = handNodeVector[i].cardVector;
@@ -117,8 +108,6 @@ void assistantFunction(vector<handNode> &handNodeVector, vector<int> imaginaryDe
     }
     imaginaryDeck = originalVector;
     lastNodeID = handNodeVector.size()-1;
-    cout<<"last node id: "<<lastNodeID<<endl;
-    cout<<"first node id: "<<firstNodeID<<endl;
 
     if(nodesCreatedThisRun!=0)
     {
@@ -135,7 +124,7 @@ int main() {
     knownDeck.push_back(6);
     knownDeck.push_back(8);
     knownDeck.push_back(2);
-    knownDeck.push_back(3);
+
     int playerOpenCard = 10;
 
     startingFunction(knownDeck,playerOpenCard, handNodeVector);

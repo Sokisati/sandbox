@@ -1,125 +1,86 @@
 #include <iostream>
 #include <vector>
-#include <cmath>
 
 using namespace std;
 
-int combinationFunction(int samplePool, int selection)
+class handNode
 {
-    int sum = 1;
-    int selectionFactorial = 1;
-    int result;
+public:
 
-    if (samplePool == selection)
+    int value;
+    int numberOfSiblings;
+    float parentProbability;
+    float selfProbability;
+
+public:
+
+    handNode(int nOSParam, float pPParam, int valueParam)
     {
-        return 1;
+        numberOfSiblings = nOSParam;
+        parentProbability = pPParam;
+        value = valueParam;
+        selfProbability = static_cast<float>(1.0/numberOfSiblings)*parentProbability;
     }
 
-    for (int i = 0; i < selection; i++)
-    {
-        sum = sum * (samplePool - i);
-    }
+};
 
-    for (int i = 0; i < selection - 1; i++)
+vector<int> eraseFunction(int number, vector<int> vector)
+{
+    for(int i=0; i<vector.size(); i++)
     {
-        selectionFactorial = selectionFactorial * (selection - i);
+        if(vector[i]==number)
+        {
+            vector.erase(vector.begin()+i);
+            break;
+        }
     }
-    result = sum / selectionFactorial;
-    return result;
+    return vector;
 }
 
-vector<int> intToBinaryFunction(int num, int size)
+vector<handNode> startingFunction(vector<int> &imaginaryDeck, int playerOpenCardValue)
 {
-    vector<int> binary;
+    vector<handNode> handNodeVector;
 
-    binary.resize(size, 0);
+    int possibleSum = 0;
 
-    for (int i = size - 1; i >= 0; i--)
-    {
-        if (num & (1 << i))
+        for(int i=0; i<imaginaryDeck.size(); i++)
         {
-            binary[size - i - 1] = 1;
+            possibleSum = playerOpenCardValue + imaginaryDeck[i];
+            handNodeVector.emplace_back(imaginaryDeck.size(),1,possibleSum);
         }
-    }
 
-    return binary;
+        return handNodeVector;
 }
 
-vector<int> elementPlacesFunction(const vector<int>& knownDeck, int numberOfDraws, int desiredCombinationNumber)
+void assistantFunction(vector<handNode> &handNodeVector, vector<int> &imaginaryDeck, int pastValue)
 {
-    vector<int> binaryVector;
-    vector<int> tempVector;
-    int tempVectorValue = 0;
-    int numberOneCounter = 0;
-    int combinationFound = 0;
-    for(int i=0; i<pow(2,knownDeck.size()); i++)
+    int possibleSum;
+    for(int i=0; i<handNodeVector.size(); i++)
     {
-        binaryVector = intToBinaryFunction(i,knownDeck.size());
-        for(int k=0; k<binaryVector.size(); k++)
+        if(handNodeVector[i].value < 18)
         {
-            if(binaryVector[k]==1)
+            eraseFunction(handNodeVector[i].value-pastValue,imaginaryDeck);
+
+            for(int k=0; k<imaginaryDeck.size(); k++)
             {
-                tempVector.push_back(k);
-                tempVectorValue = tempVectorValue + pow(2,k);
-                numberOneCounter++;
-                if(numberOneCounter>numberOfDraws)
-                {
-                    break;
-                }
-                else if (numberOneCounter==numberOfDraws && i>tempVectorValue)
-                {
-                    break;
-                }
-                else
-                {
-                    continue;
-                }
+                possibleSum = handNodeVector[i].value + imaginaryDeck[k];
+                handNodeVector.emplace_back(imaginaryDeck.size(),handNodeVector[i].selfProbability,possibleSum);
             }
         }
-        if(numberOneCounter==numberOfDraws)
+        else
         {
-            if(combinationFound==desiredCombinationNumber)
-            {
-                return tempVector;
-            }
-            else
-            {
-                combinationFound++;
-            }
+            continue;
         }
-        numberOneCounter=0;
-        tempVector.clear();
     }
-    tempVector.clear();
-    tempVector.push_back(404);
-    return tempVector;
 }
 
+int main() {
+    vector<int> knownDeck;
 
+    knownDeck.push_back(6);
+    knownDeck.push_back(8);
+    knownDeck.push_back(2);
 
-int main()
-{
-    vector<int> testVector;
-    vector<int> chosenOnes;
-
-    for (int i = 0; i < 19; i++)
-    {
-        testVector.push_back(i);
-    }
-
-    int numberOfDrawsPlayerMade = 3;
-
-    int numberOfPossibleCombinations = combinationFunction(testVector.size(), numberOfDrawsPlayerMade);
-
-    for (int i =0; i <numberOfPossibleCombinations; i++)
-    {
-        chosenOnes = elementPlacesFunction(testVector, numberOfDrawsPlayerMade, i);
-        for (int k=0; k<chosenOnes.size(); k++)
-        {
-            cout << chosenOnes[k] << " ";
-        }
-        cout << endl;
-    }
 
     return 0;
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <numeric>
 
 using namespace std;
 
@@ -7,19 +8,24 @@ class handNode
 {
 public:
 
-    int value;
+    vector<int> values;
     int numberOfSiblings;
     float parentProbability;
     float selfProbability;
 
 public:
 
-    handNode(int nOSParam, float pPParam, int valueParam)
+    handNode(int nOSParam, float pPParam, vector<int> valueParam)
     {
         numberOfSiblings = nOSParam;
         parentProbability = pPParam;
-        value = valueParam;
+        values = valueParam;
         selfProbability = static_cast<float>(1.0/numberOfSiblings)*parentProbability;
+    }
+
+public:
+    int valuesSum(){
+        return std::accumulate(this->values.begin(), this->values.end(), 0);
     }
 
 };

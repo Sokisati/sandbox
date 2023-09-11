@@ -1,152 +1,108 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <random>
 
 using namespace std;
 
-class handNode
-{
+
+class Card{
+
+private:
+    int value;
 public:
-
-    int value = 0;
-    int numberOfSiblings;
-    double parentProbability;
-    double selfProbability;
-    bool finalHand;
-    vector<int> cardVector;
+    Card(int valueParam){
+        this->value=valueParam;
+    }
 
 public:
+    int getValue() {
+        return value;
+    }
 
-    handNode(int nOSParam, double pPParam, vector<int> cardVectorParam)
-    {
-        numberOfSiblings = nOSParam;
-        parentProbability = pPParam;
-        selfProbability = static_cast<double>(1.0/numberOfSiblings)*parentProbability;
-        cardVector = cardVectorParam;
+    void setValue(int newVal) {
 
-        for(int i=0; i<cardVector.size(); i++)
-        {
-            value = value + cardVector[i];
-        }
-
-        if(value>18)
-        {
-            finalHand = true;
-        }
-        else
-        {
-            finalHand = false;
-        }
+        this->value = newVal;
     }
 };
 
-vector<int> eraseFunction(int number, vector<int> vector)
-{
-    for(int i=0; i<vector.size(); i++)
-    {
-        if(vector[i]==number)
+
+class Deck{
+    vector<Card> cards;
+
+
+public:
+    Deck(const vector<Card> cardsParam){
+        this->cards=cardsParam;
+    }
+
+    vector<Card> getCards() const {
+        return cards;
+    }
+
+    Card getCard(int index) const {
+        return this->cards[index];
+    }
+
+public:
+    int sum(){
+        int sum=0;
+        for(int i=0; i<this->cards.size(); i++)
         {
-            vector.erase(vector.begin()+i);
-            break;
+            sum= sum + this->cards[i].getValue();
+        }
+        return sum;
+    }
+
+    int size(){
+        return this->cards.size();
+    }
+
+    void deleteCard(int number){
+        for(int i=0; i<this->size(); i++)
+        {
+            if(this->cards[i].getValue()==number)
+            {
+                this->cards.erase(this->cards.begin()+i);
+                break;
+            }
         }
     }
-    return vector;
-}
 
-vector<handNode> startingFunction(vector<int> &knownDeck, int playerOpenCardValue, vector<handNode> &handNodeVector)
-{
-    vector<int> tempVector;
-
-
-    for(int i=0; i<knownDeck.size(); i++)
-    {
-        tempVector.push_back(playerOpenCardValue);
-        tempVector.push_back(knownDeck[i]);
-        handNodeVector.emplace_back(knownDeck.size(),1.0,tempVector);
-        tempVector.clear();
+    Card draw(){
+        Card drawnCard=this->cards[this->size()-1];
+        this->cards.erase(this->cards.begin()+this->size()-1);
+        return drawnCard;
     }
 
-    return handNodeVector;
-}
-
-void assistantFunction(vector<handNode> &handNodeVector, vector<int> knownDeck, int lastRunLastNodeID, int lastRunFirstNodeID)
-{
-    vector<int> originalVector;
-    originalVector = knownDeck;
-    vector<int> tempVector;
-    int nodesCreatedThisRun = 0;
-    int firstNodeID;
-    int lastNodeID;
-
-    for(int i=lastRunFirstNodeID; i<=lastRunLastNodeID; i++)
-    {
-        if(handNodeVector[i].value<18)
-        {
-            knownDeck = originalVector;
-
-            // Remove the cards that CAN'T be drawn, starting from the last element
-            for (auto it = handNodeVector[i].cardVector.begin() + 1; it != handNodeVector[i].cardVector.end(); ++it)
-            {
-                int cardThatWillBeRemoved = *it; // Get the current card (excluding the open card value)
-                knownDeck = eraseFunction(cardThatWillBeRemoved, knownDeck);
-            }
-
-
-
-            for(int create=0; create<knownDeck.size(); create++)
-            {
-                tempVector = handNodeVector[i].cardVector;
-                tempVector.push_back(knownDeck[create]);
-                handNodeVector.emplace_back(knownDeck.size(),handNodeVector[i].selfProbability,tempVector);
-                tempVector.clear();
-                if(nodesCreatedThisRun==0 && create==0)
-                {
-                    firstNodeID = handNodeVector.size()-1;
-                }
-                nodesCreatedThisRun++;
-            }
-            knownDeck = originalVector;
-        }
+    void shuffle(){
+        auto rng = default_random_engine {};
+        std::shuffle(begin(this->cards), end(this->cards), rng);
     }
-    knownDeck = originalVector;
-    lastNodeID = handNodeVector.size()-1;
-
-    if(nodesCreatedThisRun!=0)
-    {
-        assistantFunction(handNodeVector,knownDeck,lastNodeID,firstNodeID);
-    }
+};
 
 
-}
 
 int main() {
-    vector<int> knownDeck;
-    vector<handNode> handNodeVector;
+    Deck knownDeck(vector<Card>{
+            Card(6),
+            Card(8),
+            Card(10),
+            Card(2),
+            Card(2),
+    });
 
-    knownDeck.push_back(6);
-    knownDeck.push_back(8);
-    knownDeck.push_back(10);
-    knownDeck.push_back(2);
-    knownDeck.push_back(2);
+    knownDeck.shuffle();
+    knownDeck.shuffle();
+    knownDeck.shuffle();
 
-    int playerOpenCard = 10;
+    cout<<knownDeck.sum()<<endl;
 
-    startingFunction(knownDeck,playerOpenCard, handNodeVector);
-    assistantFunction(handNodeVector,knownDeck,knownDeck.size()-1,0);
-
-
-    for(int i=0; i<handNodeVector.size(); i++)
-    {
-        cout<<"i: "<<i<<endl;
-        cout<<"value: "<<handNodeVector[i].value<<endl;
-        cout<<"selfP: "<<handNodeVector[i].selfProbability<<endl;
-        cout<<"number of siblings: "<<handNodeVector[i].numberOfSiblings<<endl;
-
-        for(int k=0; k<handNodeVector[i].cardVector.size(); k++)
-        {
-            cout<<handNodeVector[i].cardVector[k]<<" ";
-        }
-        cout<<endl<<endl;
+    for (int i = 0; i < knownDeck.size(); ++i) {
+        cout<<knownDeck.getCard(i).getValue()<<endl;
     }
+
+
 
 
 

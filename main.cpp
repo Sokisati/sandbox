@@ -9,18 +9,18 @@ public:
 
     int value = 0;
     int numberOfSiblings;
-    float parentProbability;
-    float selfProbability;
+    double parentProbability;
+    double selfProbability;
     bool finalHand;
     vector<int> cardVector;
 
 public:
 
-    handNode(int nOSParam, float pPParam, vector<int> cardVectorParam)
+    handNode(int nOSParam, double pPParam, vector<int> cardVectorParam)
     {
         numberOfSiblings = nOSParam;
         parentProbability = pPParam;
-        selfProbability = static_cast<float>(1.0/numberOfSiblings)*parentProbability;
+        selfProbability = static_cast<double>(1.0/numberOfSiblings)*parentProbability;
         cardVector = cardVectorParam;
 
         for(int i=0; i<cardVector.size(); i++)
@@ -52,26 +52,26 @@ vector<int> eraseFunction(int number, vector<int> vector)
     return vector;
 }
 
-vector<handNode> startingFunction(vector<int> &imaginaryDeck, int playerOpenCardValue, vector<handNode> &handNodeVector)
+vector<handNode> startingFunction(vector<int> &knownDeck, int playerOpenCardValue, vector<handNode> &handNodeVector)
 {
     vector<int> tempVector;
 
 
-        for(int i=0; i<imaginaryDeck.size(); i++)
-        {
-            tempVector.push_back(playerOpenCardValue);
-            tempVector.push_back(imaginaryDeck[i]);
-            handNodeVector.emplace_back(imaginaryDeck.size(),1.0,tempVector);
-            tempVector.clear();
-        }
+    for(int i=0; i<knownDeck.size(); i++)
+    {
+        tempVector.push_back(playerOpenCardValue);
+        tempVector.push_back(knownDeck[i]);
+        handNodeVector.emplace_back(knownDeck.size(),1.0,tempVector);
+        tempVector.clear();
+    }
 
-        return handNodeVector;
+    return handNodeVector;
 }
 
-void assistantFunction(vector<handNode> &handNodeVector, vector<int> imaginaryDeck, int lastRunLastNodeID, int lastRunFirstNodeID)
+void assistantFunction(vector<handNode> &handNodeVector, vector<int> knownDeck, int lastRunLastNodeID, int lastRunFirstNodeID)
 {
     vector<int> originalVector;
-    originalVector = imaginaryDeck;
+    originalVector = knownDeck;
     vector<int> tempVector;
     int nodesCreatedThisRun = 0;
     int firstNodeID;
@@ -81,21 +81,22 @@ void assistantFunction(vector<handNode> &handNodeVector, vector<int> imaginaryDe
     {
         if(handNodeVector[i].value<18)
         {
-            imaginaryDeck = originalVector;
+            knownDeck = originalVector;
 
             // Remove the cards that CAN'T be drawn, starting from the last element
-            for (auto it = handNodeVector[i].cardVector.rbegin(); it != handNodeVector[i].cardVector.rend(); ++it)
+            for (auto it = handNodeVector[i].cardVector.begin() + 1; it != handNodeVector[i].cardVector.end(); ++it)
             {
-                int cardThatWillBeRemoved = *it; // Get the current card from the reverse iterator
-                imaginaryDeck = eraseFunction(cardThatWillBeRemoved, imaginaryDeck);
+                int cardThatWillBeRemoved = *it; // Get the current card (excluding the open card value)
+                knownDeck = eraseFunction(cardThatWillBeRemoved, knownDeck);
             }
 
-        
-            for(int create=0; create<imaginaryDeck.size(); create++)
+
+
+            for(int create=0; create<knownDeck.size(); create++)
             {
                 tempVector = handNodeVector[i].cardVector;
-                tempVector.push_back(imaginaryDeck[create]);
-                handNodeVector.emplace_back(imaginaryDeck.size(),handNodeVector[i].selfProbability,tempVector);
+                tempVector.push_back(knownDeck[create]);
+                handNodeVector.emplace_back(knownDeck.size(),handNodeVector[i].selfProbability,tempVector);
                 tempVector.clear();
                 if(nodesCreatedThisRun==0 && create==0)
                 {
@@ -103,15 +104,15 @@ void assistantFunction(vector<handNode> &handNodeVector, vector<int> imaginaryDe
                 }
                 nodesCreatedThisRun++;
             }
-            imaginaryDeck = originalVector;
+            knownDeck = originalVector;
         }
     }
-    imaginaryDeck = originalVector;
+    knownDeck = originalVector;
     lastNodeID = handNodeVector.size()-1;
 
     if(nodesCreatedThisRun!=0)
     {
-        assistantFunction(handNodeVector,imaginaryDeck,lastNodeID,firstNodeID);
+        assistantFunction(handNodeVector,knownDeck,lastNodeID,firstNodeID);
     }
 
 
@@ -123,6 +124,8 @@ int main() {
 
     knownDeck.push_back(6);
     knownDeck.push_back(8);
+    knownDeck.push_back(10);
+    knownDeck.push_back(2);
     knownDeck.push_back(2);
 
     int playerOpenCard = 10;
